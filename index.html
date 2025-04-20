@@ -157,7 +157,7 @@
             return new Chart(ctx, {
                 type: 'line',
                 data: { labels: [], datasets: [{ label, borderColor: color, data: [], tension: 0.2, pointRadius: 0 }] },
-                options: { responsive: true, animation: false, scales: { x: { display: false }, y: { title: { display: true } } } }
+                options: { responsive: true, animation: false, scales: { x: { display: true }, y: { display: true }, z: {display :true} } }
             });
         }
 
