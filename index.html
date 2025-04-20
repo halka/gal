@@ -7,7 +7,6 @@
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #ffffff; }
         #header {
-            /* display: flex; */
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
@@ -95,10 +94,11 @@
 
         <canvas id="shindoChart"></canvas>
     </div>
-    <div id="shindo-table-container">
-        <div id="shindo-table"></div>
-    </div>
-
+    <footer style="text-align: center; margin-top: 40px; padding: 20px; background: #f0f0f0; color: #333; font-size: 0.9em;">
+        <p>© 2025 halka. </p>
+        <p>Powered by <a href="https://quake.one/sense/">QUAKE.ONE Developed by Prioris</a></p>
+    </footer>
+    
 <script>
 const jmaColors = {
     7:    { bg: '#7d007d', text: 'white' },
@@ -116,11 +116,6 @@ let ws = null;
 let accelChart, shindoChart;
 const maxAccelPoints = 100;
 const maxShindoPoints = 100;
-const shindoHistory = [];
-let lastShindo = null;
-let lastDisplayedShindo = null;
-let lastShindoRise = null;
-let shindoRiseInterval = null;
 
 // 年月日＋時刻表示
 function updateDateTime() {
@@ -174,7 +169,6 @@ function handleMessage(event) {
         const shindo = parseFloat(parts[2]);
         updateCurrentShindoHeader(shindo);
         updateShindoChart(shindo);
-        checkShindoRise(shindo);
     }
 }
 
@@ -187,7 +181,6 @@ function updateCurrentShindoHeader(shindo) {
     el.style.backgroundColor = color.bg;
     el.style.color = color.text;
     el.style.borderColor = color.bg;
-    lastDisplayedShindo = shindo;
 }
 
 // 加速度グラフ
@@ -280,53 +273,6 @@ function updateShindoChart(shindo) {
         shindoChart.data.datasets[0].pointBackgroundColor.shift();
     }
     shindoChart.update('none');
-}
-
-// 震度上昇時、1分おきに履歴へ記録
-function checkShindoRise(shindo) {
-    if (lastShindo === null || shindo > lastShindo) {
-        addShindoHistory(shindo);
-        lastShindoRise = Date.now();
-        if (shindoRiseInterval) clearInterval(shindoRiseInterval);
-        shindoRiseInterval = setInterval(() => {
-            addShindoHistory(shindo);
-        }, 60000);
-    } else if (shindo < lastShindo) {
-        if (shindoRiseInterval) {
-            clearInterval(shindoRiseInterval);
-            shindoRiseInterval = null;
-        }
-    }
-    lastShindo = shindo;
-}
-
-// 震度履歴テーブル
-function addShindoHistory(shindo) {
-    const now = new Date();
-    shindoHistory.push({
-        time: now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3}),
-        value: shindo
-    });
-    if (shindoHistory.length > 1000) shindoHistory.shift();
-    renderShindoTable();
-}
-function renderShindoTable() {
-    const table = document.getElementById('shindo-table');
-    const recent = shindoHistory.slice(-10).reverse();
-    let html = `<table class="data-table">
-        <tr><th>時刻</th><th>震度</th></tr>
-        ${recent.map(e => {
-            const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => e.value >= k);
-            const color = jmaColors[colorKey] || jmaColors[0];
-            return `<tr>
-                <td>${e.time}</td>
-                <td style="background:${color.bg};color:${color.text};font-weight:bold;">
-                    ${e.value.toFixed(2)}
-                </td>
-            </tr>`;
-        }).join('')}
-    </table>`;
-    table.innerHTML = html;
 }
 </script>
 </body>
