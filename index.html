@@ -110,6 +110,7 @@
                 return;
             }
 
+<<<<<<< HEAD
             const wsUrl = document.getElementById('wsUrl').value;
             ws = new WebSocket(wsUrl);
 
@@ -201,5 +202,61 @@
             shindoChart.update();
         }
     </script>
+=======
+// 震度グラフ（リアルタイム、気象庁配色で線と点の色を変化）
+function updateShindoChart(shindo) {
+    if (!shindoChart) {
+        const ctx = document.getElementById('shindoChart').getContext('2d');
+        shindoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '震度',
+                    data: [],
+                    borderColor: function(ctx) {
+                        const idx = ctx.p0DataIndex;
+                        const val = ctx.chart.data.datasets[0].data[idx];
+                        const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
+                        return jmaColors[colorKey]?.bg;
+                    },
+                    segment: {
+                        borderColor: ctx => {
+                            const idx = ctx.p0DataIndex;
+                            const val = ctx.chart.data.datasets[0].data[idx];
+                            const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
+                            return jmaColors[colorKey]?.bg;
+                        }
+                    },
+                    pointBackgroundColor: [],
+                    pointRadius: 5,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { min: 0, max: 50, title: { display: true, text: '震度' } }
+                }
+            }
+        });
+    }
+    shindoChart.data.labels.push('');
+    shindoChart.data.datasets[0].data.push(shindo);
+    const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
+    shindoChart.data.datasets[0].pointBackgroundColor.push(jmaColors[colorKey]?.bg);
+    if (shindoChart.data.labels.length > maxShindoPoints) {
+        shindoChart.data.labels.shift();
+        shindoChart.data.datasets[0].data.shift();
+        shindoChart.data.datasets[0].pointBackgroundColor.shift();
+    }
+    shindoChart.update('none');
+}
+</script>
+>>>>>>> parent of 3250fc9 (index.html を更新)
 </body>
 </html>
