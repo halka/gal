@@ -236,14 +236,14 @@ function updateShindoChart(shindo) {
                         const idx = ctx.p0DataIndex;
                         const val = ctx.chart.data.datasets[0].data[idx];
                         const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
-                        return jmaColors[colorKey]?.bg || '#f0f0f0';
+                        return jmaColors[colorKey]?.bg;
                     },
                     segment: {
                         borderColor: ctx => {
                             const idx = ctx.p0DataIndex;
                             const val = ctx.chart.data.datasets[0].data[idx];
                             const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
-                            return jmaColors[colorKey]?.bg || '#f0f0f0';
+                            return jmaColors[colorKey]?.bg;
                         }
                     },
                     pointBackgroundColor: [],
@@ -259,7 +259,7 @@ function updateShindoChart(shindo) {
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { display: false },
-                    y: { min: 0, max: 10, title: { display: true, text: '震度' } }
+                    y: { min: 0, max: 50, title: { display: true, text: '震度' } }
                 }
             }
         });
