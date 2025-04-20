@@ -226,7 +226,7 @@ function updateShindoChart(shindo) {
     if (!shindoChart) {
         const ctx = document.getElementById('shindoChart').getContext('2d');
         shindoChart = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: [],
                 datasets: [{
@@ -267,7 +267,7 @@ function updateShindoChart(shindo) {
     shindoChart.data.labels.push('');
     shindoChart.data.datasets[0].data.push(shindo);
     const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
-    shindoChart.data.datasets[0].pointBackgroundColor.push(jmaColors[colorKey]?.bg || '#f0f0f0');
+    shindoChart.data.datasets[0].pointBackgroundColor.push(jmaColors[colorKey]?.bg);
     if (shindoChart.data.labels.length > maxShindoPoints) {
         shindoChart.data.labels.shift();
         shindoChart.data.datasets[0].data.shift();
