@@ -178,7 +178,7 @@ function updateCurrentShindoHeader(shindo) {
     const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
     const color = jmaColors[colorKey] || jmaColors[0];
     const el = document.getElementById('current-shindo');
-    el.textContent = `${shindo.toFixed(3)}`;
+    el.textContent = `${shindo.toFixed(2)}`;
     el.style.backgroundColor = color.bg;
     el.style.color = color.text;
     el.style.borderColor = color.bg;
@@ -193,9 +193,9 @@ function updateAccelChart(x, y, z) {
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'X軸', borderColor: '#FF6384', data: [], fill: false, tension: 0.2, pointRadius: 0 },
-                    { label: 'Y軸', borderColor: '#4BC0C0', data: [], fill: false, tension: 0.2, pointRadius: 0 },
-                    { label: 'Z軸', borderColor: '#FFCE56', data: [], fill: false, tension: 0.2, pointRadius: 0 }
+                    { label: 'X', borderColor: '#FF6384', data: [], fill: false, tension: 0.2, pointRadius: 0 },
+                    { label: 'Y', borderColor: '#4BC0C0', data: [], fill: false, tension: 0.2, pointRadius: 0 },
+                    { label: 'Z', borderColor: '#FFCE56', data: [], fill: false, tension: 0.2, pointRadius: 0 }
                 ]
             },
             options: {
@@ -247,7 +247,7 @@ function updateShindoChart(shindo) {
                         }
                     },
                     pointBackgroundColor: [],
-                    pointRadius: 6,
+                    pointRadius: 10,
                     fill: false,
                     tension: 0.2
                 }]
@@ -259,7 +259,7 @@ function updateShindoChart(shindo) {
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { display: false },
-                    y: { min: 0, max: 7, title: { display: true, text: '震度' } }
+                    y: { min: 0, max: 10, title: { display: true, text: '震度' } }
                 }
             }
         });
