@@ -248,15 +248,15 @@ function updateShindoChart(shindo) {
                     },
                     pointBackgroundColor: [],
                     pointRadius: 2,
-                    fill: true,
+                    fill: false,
                     tension: 0.2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false,
-                plugins: { legend: { display: false } },
+                animation: true,
+                plugins: { legend: { display: true } },
                 scales: {
                     x: { display: false },
                     y: { min: 0, max: 10, title: { display: true, text: '震度' } }
