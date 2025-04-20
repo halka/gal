@@ -205,7 +205,7 @@ function updateAccelChart(x, y, z) {
                 plugins: { legend: { display: true } },
                 scales: {
                     x: { display: false },
-                    y: { title: { display: true, text: '加速度 (G)' } }
+                    y: { title: { display: true, text: '加速度' } }
                 }
             }
         });
@@ -255,8 +255,8 @@ function updateShindoChart(shindo) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: true,
-                plugins: { legend: { display: true } },
+                animation: false,
+                plugins: { legend: { display: false } },
                 scales: {
                     x: { display: false },
                     y: { min: 0, max: 10, title: { display: true, text: '震度' } }
