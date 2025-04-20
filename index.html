@@ -189,41 +189,8 @@ function updateCurrentShindoHeader(shindo) {
 }
 
 // 加速度グラフ
-function updateAccelChart(x, y, z) {
-    if (!accelChart) {
-        const ctx = document.getElementById('accelChart').getContext('2d');
-        accelChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    { label: 'X', borderColor: '#FF0000', data: [], fill: false, tension: 0.2, pointRadius: 0 },
-                    { label: 'Y', borderColor: '#0000FF', data: [], fill: false, tension: 0.2, pointRadius: 0 },
-                    { label: 'Z', borderColor: '#00FF00', data: [], fill: false, tension: 0.2, pointRadius: 0 }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                plugins: { legend: { display: true } },
-                scales: {
-                    x: { display: false },
-                    y: { title: { display: true, text: '加速度' } }
-                }
-            }
-        });
-    }
-    accelChart.data.labels.push('');
-    accelChart.data.datasets[0].data.push(x);
-    accelChart.data.datasets[1].data.push(y);
-    accelChart.data.datasets[2].data.push(z);
-    if (accelChart.data.labels.length > maxAccelPoints) {
-        accelChart.data.labels.shift();
-        accelChart.data.datasets.forEach(ds => ds.data.shift());
-    }
-    accelChart.update('none');
-}
+
+                
 
 // 震度グラフ（リアルタイム、気象庁配色で線と点の色を変化）
 function updateShindoChart(shindo) {
