@@ -7,285 +7,199 @@
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #ffffff; }
         #header {
+            display: flex;
+            flex-direction: column;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 20px;
             background: hsl(353, 85%, 49%);
             color: #fff;
             padding: 14px 24px;
         }
-        #header-left {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        #date-string, #current-time {
-            font-size: 2em;
-        }
+        #date-string, #current-time { font-size: 2em; }
         #current-shindo {
             font-size: 10em;
             font-weight: bold;
-            padding: 10px 10px;
+            padding: 10px;
             border-radius: 16px;
             min-width: 220px;
             text-align: center;
-            margin-left: 24px;
-            margin-right: 24px;
+            margin: 24px auto;
             border: 3px solid #fff;
             box-shadow: 0 2px 10px rgba(0,0,0,0.10);
-            display: block;
         }
-        #controls { margin: 18px 24px; text-align: center;}
+        #controls { margin: 18px 24px; text-align: center; }
         #wsUrl { font-size: 1em; padding: 6px 8px; border-radius: 5px; border: 1px solid #ddd; width: 280px; }
-        #connectBtn { font-size: 1em; padding: 6px 18px; border-radius: 5px; border: none; background: #23c32b; color: #fff; font-weight: bold; cursor: pointer; margin-left: 8px; }
-        .graph-container { height: 40vh; margin: 32px 24px 0 24px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(100,116,139,0.07); position: relative; padding: 1.5em 1em 1em 1em; }
-        #accel-values { font-size: 1.15em; margin-top: 18px; padding: 10px 0 0 0; color: #000; text-align: center; font-family: 'Montserrat', 'monospace', 'Meiryo', sans-serif; letter-spacing: 0.1em; }
-        #shindo-table-container { margin: 32px 24px; }
-        .data-table { margin: 0 auto; border-collapse: separate; border-spacing: 0; width: 100%; max-width: 500px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 16px rgba(99,102,241,0.07); }
-        .data-table th, .data-table td { padding: 8px 10px; text-align: center; }
-        .data-table th { background: hsl(353, 85%, 49%); color: #fff; font-weight: 700; border-bottom: 2px solid #fff; }
-        .data-table tr:not(:last-child) td { border-bottom: 1px solid #e0e7ff; }
-        @media (max-width: 700px) {
-            #header, #controls, .graph-container, #shindo-table-container { margin-left: 2vw; margin-right: 2vw; }
-            #current-shindo { font-size: 2em; min-width: 120px; padding: 8px 10px; }
+        #connectBtn {
+            font-size: 1em; padding: 6px 18px; border-radius: 5px;
+            border: none; background: #23c32b; color: #fff; font-weight: bold; cursor: pointer;
         }
-        h2{
-            font-size: 1.5em;
-            margin: 24px 24px;
-            padding: 0 0 10px 0;
-            border-bottom: 2px solid hsl(353, 85%, 49%);
-            color: hsl(353, 85%, 49%);
+        .graph-container {
+            height: 40vh; margin: 32px 24px 0; background: #fff; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(100,116,139,0.07); position: relative; padding: 1em;
         }
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        canvas { width: 100%; height: 100%; }
+        h2 { font-size: 1.5em; margin: 24px 24px; padding-bottom: 10px; border-bottom: 2px solid hsl(353, 85%, 49%); }
+        footer {
+            text-align: center; margin-top: 40px; padding: 20px; background: #f0f0f0;
+            color: #333; font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <div id="header">
-        <div>
-            <span style="font-size:4em;">ゆれるhalka</span>
-            <p style="font-size: 1.5em;">Goryokaku Park, Hakodate City, Hokkaido, JAPAN</p>
-        </div>
-        <div>
-            <span id="date-string"></span>
-            <span id="current-time"></span>
-        </div>
-        <div><p>加速度は100Hz, 震度は1Hzで出力。ハードウェアとネットワークの都合上、500msくらい遅れていると思われます。</p></div>
+        <h1>ゆれるhalka</h1>
+        <p>Goryokaku Park, Hakodate City, Hokkaido, JAPAN</p>
+        <span id="date-string"></span>
+        <span id="current-time"></span>
+        <p>加速度は100Hz, 震度は1Hzで出力。</p>
     </div>
     <div id="controls">
         <input id="wsUrl" type="text" value="wss://gal.halka.jp" placeholder="WebSocket URL">
         <button id="connectBtn" onclick="connectWebSocket()">Connect</button>
     </div>
     <span id="current-shindo">--</span>
-    <h2>加速度</h2>   
-    <div id="accel-values"></div>
-
+    <h2>加速度</h2>
+    <div id="accel-values" style="text-align:center; margin-bottom:10px;"></div>
     <div class="graph-container">
-     <div style="display: flex; flex-direction: column; gap: 20px;">
-    <canvas id="xAccelChart" width="400" height="200"></canvas>
-    <canvas id="yAccelChart" width="400" height="200"></canvas>
-    <canvas id="zAccelChart" width="400" height="200"></canvas>
-</div>
-        
+        <canvas id="xAccelChart"></canvas>
+        <canvas id="yAccelChart"></canvas>
+        <canvas id="zAccelChart"></canvas>
     </div>
     <h2>震度</h2>
     <div class="graph-container">
-
-
         <canvas id="shindoChart"></canvas>
     </div>
-    <footer style="text-align: center; margin-top: 40px; padding: 20px; background: #f0f0f0; color: #333; font-size: 0.9em;">
-        <p>© 2025 halka. </p>
-        <p>Powered by <a href="https://quake.one/sense/">QUAKE.ONE</a> Developed by Prioris.</p>
+    <footer>
+        <p>© 2025 halka. Powered by <a href="https://quake.one/sense/">QUAKE.ONE</a> Developed by Prioris.</p>
     </footer>
+    <script>
+        // Constants
+        const jmaColors = {
+            7: { bg: '#7d007d', text: 'white' },
+            6.5: { bg: '#d70035', text: 'white' },
+            6: { bg: '#ff0000', text: 'white' },
+            5.5: { bg: '#ff6600', text: 'black' },
+            5: { bg: '#ffff00', text: 'black' },
+            4: { bg: '#fef4c0', text: 'black' },
+            3: { bg: '#0068b7', text: 'white' },
+            2: { bg: '#00a3e0', text: 'black' },
+            1: { bg: '#ffffff', text: 'black' },
+            0: { bg: '#f0f0f0', text: 'black' }
+        };
+        const maxAccelPoints = 100;
+        const maxShindoPoints = 100;
+
+        // Variables
+        let ws = null;
+        let xChart, yChart, zChart, shindoChart;
+
+        // Initialize Date and Time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('date-string').textContent = now.toLocaleDateString('ja-JP');
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('ja-JP', { hour12: false });
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // WebSocket Management
+        function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                console.warn('WebSocket already connected.');
+                return;
+            }
+
+            const wsUrl = document.getElementById('wsUrl').value;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => updateConnectStatus(true);
+            ws.onclose = () => updateConnectStatus(false);
+            ws.onerror = (e) => console.error('WebSocket Error:', e);
+            ws.onmessage = handleMessage;
+        }
+
+        function updateConnectStatus(isConnected) {
+            const btn = document.getElementById('connectBtn');
+            btn.textContent = isConnected ? 'Disconnect' : 'Connect';
+            btn.style.background = isConnected ? '#ff0000' : '#23c32b';
+            btn.onclick = isConnected ? () => ws.close() : connectWebSocket;
+        }
+
+        // Handle WebSocket Messages
+        function handleMessage(event) {
+            const parts = event.data.split(',');
+            if (parts[0] === '$XSACC' && parts.length >= 4) {
+                const [x, y, z] = parts.slice(1, 4).map(Number);
+                updateAccelCharts(x, y, z);
+                document.getElementById('accel-values').textContent = `X: ${x.toFixed(3)} Y: ${y.toFixed(3)} Z: ${z.toFixed(3)}`;
+            }
+
+            if (parts[0] === '$XSINT' && parts.length >= 3) {
+                const shindo = parseFloat(parts[2]);
+                updateCurrentShindo(shindo);
+                updateShindoChart(shindo);
+            }
+        }
+
+        // Update Current Shindo
+        function updateCurrentShindo(shindo) {
+            const colorKey = Object.keys(jmaColors).map(Number).reverse().find(k => shindo >= k);
+            const color = jmaColors[colorKey] || jmaColors[0];
+            const el = document.getElementById('current-shindo');
+            el.textContent = shindo.toFixed(2);
+            el.style.backgroundColor = color.bg;
+            el.style.color = color.text;
+        }
+
+        // Create Charts
+        function createChart(ctx, label, color) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label, borderColor: color, data: [], tension: 0.2, pointRadius: 0 }] },
+                options: { responsive: true, animation: false, scales: { x: { display: false }, y: { title: { display: true } } } }
+            });
+        }
+
+        // Update Acceleration Charts
+        function updateAccelCharts(x, y, z) {
+            if (!xChart) xChart = createChart(document.getElementById('xAccelChart').getContext('2d'), 'X軸', '#FF0000');
+            if (!yChart) yChart = createChart(document.getElementById('yAccelChart').getContext('2d'), 'Y軸', '#0000FF');
+            if (!zChart) zChart = createChart(document.getElementById('zAccelChart').getContext('2d'), 'Z軸', '#00FF00');
+
+            [xChart, yChart, zChart].forEach((chart, i) => {
+                const value = [x, y, z][i];
+                chart.data.labels.push('');
+                chart.data.datasets[0].data.push(value);
+                if (chart.data.labels.length > maxAccelPoints) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                }
+                chart.update();
+            });
+        }
+
+        // Update Shindo Chart
+        function updateShindoChart(shindo) {
+            if (!shindoChart) {
+                shindoChart = new Chart(document.getElementById('shindoChart').getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: [], datasets: [{ label: '震度', data: [], backgroundColor: [] }] },
+                    options: { responsive: true, scales: { y: { min: 0, max: 7 } } }
+                });
+            }
+
+            const colorKey = Object.keys(jmaColors).map(Number).reverse().find(k => shindo >= k);
+            shindoChart.data.labels.push('');
+            shindoChart.data.datasets[0].data.push(shindo);
+            shindoChart.data.datasets[0].backgroundColor.push(jmaColors[colorKey].bg);
+            if (shindoChart.data.labels.length > maxShindoPoints) {
+                shindoChart.data.labels.shift();
+                shindoChart.data.datasets[0].data.shift();
+                shindoChart.data.datasets[0].backgroundColor.shift();
+            }
+            shindoChart.update();
+        }
+    </script>
 </body>
 </html>
-<script>
-const jmaColors = {
-    7:    { bg: '#7d007d', text: 'white' },
-    6.5:  { bg: '#d70035', text: 'white' },
-    6:    { bg: '#ff0000', text: 'white' },
-    5.5:  { bg: '#ff6600', text: 'black' },
-    5:    { bg: '#ffff00', text: 'black' },
-    4:    { bg: '#fef4c0', text: 'black' },
-    3:    { bg: '#0068b7', text: 'white' },
-    2:    { bg: '#00a3e0', text: 'black' },
-    1:    { bg: '#ffffff', text: 'black' },
-    0:    { bg: '#f0f0f0', text: 'black' }
-};
-
-let ws = null;
-let xChart, yChart, zChart, shindoChart;
-const maxAccelPoints = 100;
-const maxShindoPoints = 100;
-
-// 年月日＋時刻表示
-function updateDateTime() {
-    const now = new Date();
-    document.getElementById('date-string').textContent = now.toLocaleDateString('ja-JP');
-    document.getElementById('current-time').textContent = now.toLocaleTimeString('ja-JP', { hour12: false });
-}
-setInterval(updateDateTime, 1000);
-updateDateTime();
-
-// WebSocket接続
-function connectWebSocket() {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        console.log('WebSocket already connected');
-        return;
-    }
-
-    const wsUrl = document.getElementById('wsUrl').value;
-    ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-        console.log('WebSocket connected');
-        updateConnectButton(true);
-    };
-
-    ws.onclose = () => {
-        console.log('WebSocket disconnected');
-        updateConnectButton(false);
-    };
-
-    ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        updateConnectButton(false);
-    };
-
-    ws.onmessage = handleMessage;
-}
-
-// WebSocket接続ボタンの状態更新
-function updateConnectButton(isConnected) {
-    const btn = document.getElementById('connectBtn');
-    if (isConnected) {
-        btn.textContent = 'Disconnect';
-        btn.style.background = '#ff0000';
-        btn.onclick = () => ws.close();
-    } else {
-        btn.textContent = 'Connect';
-        btn.style.background = '#23c32b';
-        btn.onclick = connectWebSocket;
-    }
-}
-
-// メッセージ受信処理
-function handleMessage(event) {
-    const line = event.data.split('*')[0];
-    const parts = line.split(',');
-
-    if (parts[0] === '$XSACC' && parts.length >= 4) {
-        const [x, y, z] = parts.slice(1, 4).map(Number);
-        updateAccelCharts(x, y, z);
-        document.getElementById('accel-values').textContent = `X: ${x.toFixed(3)} Y: ${y.toFixed(3)} Z: ${z.toFixed(3)}`;
-    }
-
-    if (parts[0] === '$XSINT' && parts.length >= 3) {
-        const shindo = parseFloat(parts[2]);
-        updateCurrentShindoHeader(shindo);
-        updateShindoChart(shindo);
-    }
-}
-
-// 震度ヘッダー更新
-function updateCurrentShindoHeader(shindo) {
-    const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
-    const color = jmaColors[colorKey] || jmaColors[0];
-    const el = document.getElementById('current-shindo');
-    el.textContent = shindo.toFixed(2);
-    el.style.backgroundColor = color.bg;
-    el.style.color = color.text;
-    el.style.borderColor = color.bg;
-}
-
-// 加速度チャート作成
-function createAccelChart(ctx, label, color) {
-    return new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: label,
-                borderColor: color,
-                data: [],
-                fill: false,
-                tension: 0.2,
-                pointRadius: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            plugins: { legend: { display: true } },
-            scales: { x: { display: false }, y: { title: { display: true, text: '加速度' } } }
-        }
-    });
-}
-
-// 加速度チャート更新
-function updateAccelCharts(x, y, z) {
-    if (!xChart) xChart = createAccelChart(document.getElementById('xAccelChart').getContext('2d'), 'X軸', '#FF0000');
-    if (!yChart) yChart = createAccelChart(document.getElementById('yAccelChart').getContext('2d'), 'Y軸', '#0000FF');
-    if (!zChart) zChart = createAccelChart(document.getElementById('zAccelChart').getContext('2d'), 'Z軸', '#00FF00');
-
-    [xChart, yChart, zChart].forEach((chart, i) => {
-        const value = [x, y, z][i];
-        chart.data.labels.push('');
-        chart.data.datasets[0].data.push(value);
-
-        if (chart.data.labels.length > maxAccelPoints) {
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
-        }
-
-        chart.update('none');
-    });
-}
-
-// 震度チャート作成・更新
-function updateShindoChart(shindo) {
-    if (!shindoChart) {
-        shindoChart = new Chart(document.getElementById('shindoChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: '震度',
-                    data: [],
-                    backgroundColor: []
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { display: false },
-                    y: { min: 0, max: 7, title: { display: true, text: '震度' } }
-                }
-            }
-        });
-    }
-
-    const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
-    shindoChart.data.labels.push('');
-    shindoChart.data.datasets[0].data.push(shindo);
-    shindoChart.data.datasets[0].backgroundColor.push(jmaColors[colorKey]?.bg);
-
-    if (shindoChart.data.labels.length > maxShindoPoints) {
-        shindoChart.data.labels.shift();
-        shindoChart.data.datasets[0].data.shift();
-        shindoChart.data.datasets[0].backgroundColor.shift();
-    }
-
-    shindoChart.update('none');
-}
-</script>
