@@ -2,12 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>わたしのじしん</title>
+    <title>ゆれるhalka</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #ffffff; }
         #header {
-            display: flex;
+            /* display: flex; */
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
@@ -20,9 +20,8 @@
             flex-direction: column;
             align-items: flex-start;
         }
-        #current-time {
-            font-size: 1.2em;
-            letter-spacing: 0.1em;
+        #date-string, #current-time {
+            font-size: 2em;
         }
         #current-shindo {
             font-size: 5em;
@@ -37,7 +36,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.10);
             display: block;
         }
-        #controls { margin: 18px 24px 18px 24px; text-align: right;}
+        #controls { margin: 18px 24px; text-align: center;}
         #wsUrl { font-size: 1em; padding: 6px 8px; border-radius: 5px; border: 1px solid #ddd; width: 280px; }
         #connectBtn { font-size: 1em; padding: 6px 18px; border-radius: 5px; border: none; background: #23c32b; color: #fff; font-weight: bold; cursor: pointer; margin-left: 8px; }
         .graph-container { height: 40vh; margin: 32px 24px 0 24px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(100,116,139,0.07); position: relative; padding: 1.5em 1em 1em 1em; }
@@ -47,7 +46,6 @@
         .data-table th, .data-table td { padding: 8px 10px; text-align: center; }
         .data-table th { background: hsl(353, 85%, 49%); color: #fff; font-weight: 700; border-bottom: 2px solid #fff; }
         .data-table tr:not(:last-child) td { border-bottom: 1px solid #e0e7ff; }
-        .data-table td { transition: background 0.3s, color 0.3s; }
         @media (max-width: 700px) {
             #header, #controls, .graph-container, #shindo-table-container { margin-left: 2vw; margin-right: 2vw; }
             #current-shindo { font-size: 2em; min-width: 120px; padding: 8px 10px; }
@@ -70,8 +68,9 @@
 </head>
 <body>
     <div id="header">
-        <div id="header-left">
-            <span style="font-size:2em;">地震やらなにやら</span>
+        <div>
+            <span style="font-size:2em;">ゆれるhalkaのへや</span>
+            <p style="font-size: 0.5em;">Goryokaku Park, Hakodate City, Hokkaido, JAPAN</p>
         </div>
         <div>
             <span id="date-string"></span>
