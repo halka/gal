@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>わたしのじしん</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #ffffff; }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: hsl(353, 85%, 49%);
+            color: #fff;
+            padding: 14px 24px;
+        }
+        #header-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        #current-time {
+            font-size: 1.2em;
+            letter-spacing: 0.1em;
+        }
+        #current-shindo {
+            font-size: 5em;
+            font-weight: bold;
+            padding: 10px 10px;
+            border-radius: 16px;
+            min-width: 220px;
+            text-align: center;
+            margin-left: 24px;
+            margin-right: 24px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            display: block;
+        }
+        #controls { margin: 18px 24px 18px 24px; text-align: right;}
+        #wsUrl { font-size: 1em; padding: 6px 8px; border-radius: 5px; border: 1px solid #ddd; width: 280px; }
+        #connectBtn { font-size: 1em; padding: 6px 18px; border-radius: 5px; border: none; background: #23c32b; color: #fff; font-weight: bold; cursor: pointer; margin-left: 8px; }
+        .graph-container { height: 40vh; margin: 32px 24px 0 24px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(100,116,139,0.07); position: relative; padding: 1.5em 1em 1em 1em; }
+        #accel-values { font-size: 1.15em; margin-top: 18px; padding: 10px 0 0 0; color: #000; text-align: center; font-family: 'Montserrat', 'monospace', 'Meiryo', sans-serif; letter-spacing: 0.1em; }
+        #shindo-table-container { margin: 32px 24px; }
+        .data-table { margin: 0 auto; border-collapse: separate; border-spacing: 0; width: 100%; max-width: 500px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 16px rgba(99,102,241,0.07); }
+        .data-table th, .data-table td { padding: 8px 10px; text-align: center; }
+        .data-table th { background: hsl(353, 85%, 49%); color: #fff; font-weight: 700; border-bottom: 2px solid #fff; }
+        .data-table tr:not(:last-child) td { border-bottom: 1px solid #e0e7ff; }
+        .data-table td { transition: background 0.3s, color 0.3s; }
+        @media (max-width: 700px) {
+            #header, #controls, .graph-container, #shindo-table-container { margin-left: 2vw; margin-right: 2vw; }
+            #current-shindo { font-size: 2em; min-width: 120px; padding: 8px 10px; }
+        }
+        h2{
+            font-size: 1.5em;
+            margin: 24px 24px;
+            padding: 0 0 10px 0;
+            border-bottom: 2px solid hsl(353, 85%, 49%);
+            color: hsl(353, 85%, 49%);
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div id="header-left">
+            <span style="font-size:2em;">地震やらなにやら</span>
+        </div>
+        <div>
+            <span id="date-string"></span>
+            <span id="current-time"></span>
+        </div>
+    </div>
+    <div id="controls">
+        <input id="wsUrl" type="text" value="wss://gal.halka.jp" placeholder="WebSocket URL">
+        <button id="connectBtn" onclick="connectWebSocket()">Connect</button>
+    </div>
+    <span id="current-shindo">震度 --</span>
+    <h2>加速度</h2>   
+    <div id="accel-values"></div>
+
+    <div class="graph-container">
+     
+        <canvas id="accelChart"></canvas>
+    </div>
+    <h2>リアルタイム震度</h2>
+    <div class="graph-container">
+
+
+        <canvas id="shindoChart"></canvas>
+    </div>
+    <div id="shindo-table-container">
+        <div id="shindo-table"></div>
+    </div>
+
+<script>
+const jmaColors = {
+    7:    { bg: '#7d007d', text: 'white' },
+    6.5:  { bg: '#d70035', text: 'white' },
+    6:    { bg: '#ff0000', text: 'white' },
+    5.5:  { bg: '#ff6600', text: 'black' },
+    5:    { bg: '#ffff00', text: 'black' },
+    4:    { bg: '#fef4c0', text: 'black' },
+    3:    { bg: '#0068b7', text: 'white' },
+    2:    { bg: '#00a3e0', text: 'black' },
+    1:    { bg: '#ffffff', text: 'black' },
+    0:    { bg: '#f0f0f0', text: 'black' }
+};
+let ws = null;
+let accelChart, shindoChart;
+const maxAccelPoints = 100;
+const maxShindoPoints = 100;
+const shindoHistory = [];
+let lastShindo = null;
+let lastDisplayedShindo = null;
+let lastShindoRise = null;
+let shindoRiseInterval = null;
+
+// 年月日＋時刻表示
+function updateDateTime() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    document.getElementById('date-string').textContent = `${y}-${m}-${d} `;
+    document.getElementById('current-time').textContent =
+        now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3});
+}
+setInterval(updateDateTime, 1);
+updateDateTime();
+connectWebSocket();
+// WebSocket接続
+function connectWebSocket() {
+    if (ws) ws.close();
+    ws = new WebSocket(document.getElementById('wsUrl').value);
+    ws.onopen = () => {
+        console.log('WebSocket connected');
+        document.getElementById('connectBtn').textContent = 'Disconnect';
+        document.getElementById('connectBtn').style.background = '#ff0000';
+        document.getElementById('connectBtn').onclick = () => { ws.close(); };
+    };
+    ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        document.getElementById('connectBtn').textContent = 'Connect';
+        document.getElementById('connectBtn').style.background = '#23c32b';
+        document.getElementById('connectBtn').onclick = connectWebSocket;
+    };
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        document.getElementById('connectBtn').textContent = 'Connect';
+        document.getElementById('connectBtn').style.background = '#23c32b';
+        document.getElementById('connectBtn').onclick = connectWebSocket;
+    };
+    ws.onmessage = handleMessage;
+}
+
+// データ受信処理
+function handleMessage(event) {
+    const line = event.data.split('*')[0];
+    const parts = line.split(',');
+    if (parts[0] === '$XSACC' && parts.length >= 4) {
+        const [x, y, z] = parts.slice(1,4).map(Number);
+        updateAccelChart(x, y, z);
+        document.getElementById('accel-values').textContent =
+            `X: ${x.toFixed(3)}　Y: ${y.toFixed(3)}　Z: ${z.toFixed(3)}`;
+    }
+    if (parts[0] === '$XSINT' && parts.length >= 3) {
+        const shindo = parseFloat(parts[2]);
+        updateCurrentShindoHeader(shindo);
+        updateShindoChart(shindo);
+        checkShindoRise(shindo);
+    }
+}
+
+// ヘッダーに大きく現在震度を表示（気象庁色分け）
+function updateCurrentShindoHeader(shindo) {
+    const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
+    const color = jmaColors[colorKey] || jmaColors[0];
+    const el = document.getElementById('current-shindo');
+    el.textContent = `震度 ${shindo.toFixed(1)}`;
+    el.style.backgroundColor = color.bg;
+    el.style.color = color.text;
+    el.style.borderColor = color.bg;
+    lastDisplayedShindo = shindo;
+}
+
+// 加速度グラフ
+function updateAccelChart(x, y, z) {
+    if (!accelChart) {
+        const ctx = document.getElementById('accelChart').getContext('2d');
+        accelChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'X軸', borderColor: '#FF6384', data: [], fill: false, tension: 0.2, pointRadius: 0 },
+                    { label: 'Y軸', borderColor: '#4BC0C0', data: [], fill: false, tension: 0.2, pointRadius: 0 },
+                    { label: 'Z軸', borderColor: '#FFCE56', data: [], fill: false, tension: 0.2, pointRadius: 0 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: { legend: { display: true } },
+                scales: {
+                    x: { display: false },
+                    y: { title: { display: true, text: '加速度 (G)' } }
+                }
+            }
+        });
+    }
+    accelChart.data.labels.push('');
+    accelChart.data.datasets[0].data.push(x);
+    accelChart.data.datasets[1].data.push(y);
+    accelChart.data.datasets[2].data.push(z);
+    if (accelChart.data.labels.length > maxAccelPoints) {
+        accelChart.data.labels.shift();
+        accelChart.data.datasets.forEach(ds => ds.data.shift());
+    }
+    accelChart.update('none');
+}
+
+// 震度グラフ（リアルタイム、気象庁配色で線と点の色を変化）
+function updateShindoChart(shindo) {
+    if (!shindoChart) {
+        const ctx = document.getElementById('shindoChart').getContext('2d');
+        shindoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '震度',
+                    data: [],
+                    borderColor: function(ctx) {
+                        const idx = ctx.p0DataIndex;
+                        const val = ctx.chart.data.datasets[0].data[idx];
+                        const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
+                        return jmaColors[colorKey]?.bg || '#f0f0f0';
+                    },
+                    segment: {
+                        borderColor: ctx => {
+                            const idx = ctx.p0DataIndex;
+                            const val = ctx.chart.data.datasets[0].data[idx];
+                            const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
+                            return jmaColors[colorKey]?.bg || '#f0f0f0';
+                        }
+                    },
+                    pointBackgroundColor: [],
+                    pointRadius: 6,
+                    fill: false,
+                    tension: 0.2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { min: 0, max: 7, title: { display: true, text: '震度' } }
+                }
+            }
+        });
+    }
+    shindoChart.data.labels.push('');
+    shindoChart.data.datasets[0].data.push(shindo);
+    const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
+    shindoChart.data.datasets[0].pointBackgroundColor.push(jmaColors[colorKey]?.bg || '#f0f0f0');
+    if (shindoChart.data.labels.length > maxShindoPoints) {
+        shindoChart.data.labels.shift();
+        shindoChart.data.datasets[0].data.shift();
+        shindoChart.data.datasets[0].pointBackgroundColor.shift();
+    }
+    shindoChart.update('none');
+}
+
+// 震度上昇時、1分おきに履歴へ記録
+function checkShindoRise(shindo) {
+    if (lastShindo === null || shindo > lastShindo) {
+        addShindoHistory(shindo);
+        lastShindoRise = Date.now();
+        if (shindoRiseInterval) clearInterval(shindoRiseInterval);
+        shindoRiseInterval = setInterval(() => {
+            addShindoHistory(shindo);
+        }, 60000);
+    } else if (shindo < lastShindo) {
+        if (shindoRiseInterval) {
+            clearInterval(shindoRiseInterval);
+            shindoRiseInterval = null;
+        }
+    }
+    lastShindo = shindo;
+}
+
+// 震度履歴テーブル
+function addShindoHistory(shindo) {
+    const now = new Date();
+    shindoHistory.push({
+        time: now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3}),
+        value: shindo
+    });
+    if (shindoHistory.length > 1000) shindoHistory.shift();
+    renderShindoTable();
+}
+function renderShindoTable() {
+    const table = document.getElementById('shindo-table');
+    const recent = shindoHistory.slice(-10).reverse();
+    let html = `<table class="data-table">
+        <tr><th>時刻</th><th>震度</th></tr>
+        ${recent.map(e => {
+            const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => e.value >= k);
+            const color = jmaColors[colorKey] || jmaColors[0];
+            return `<tr>
+                <td>${e.time}</td>
+                <td style="background:${color.bg};color:${color.text};font-weight:bold;">
+                    ${e.value.toFixed(2)}
+                </td>
+            </tr>`;
+        }).join('')}
+    </table>`;
+    table.innerHTML = html;
+}
+</script>
+</body>
+</html>
