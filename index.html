@@ -226,7 +226,7 @@ function updateShindoChart(shindo) {
     if (!shindoChart) {
         const ctx = document.getElementById('shindoChart').getContext('2d');
         shindoChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: [],
                 datasets: [{
