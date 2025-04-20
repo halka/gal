@@ -103,7 +103,6 @@
         <p>© 2025 halka. </p>
         <p>Powered by <a href="https://quake.one/sense/">QUAKE.ONE</a> Developed by Prioris.</p>
     </footer>
-    
 <script>
 const jmaColors = {
     7:    { bg: '#7d007d', text: 'white' },
@@ -117,59 +116,74 @@ const jmaColors = {
     1:    { bg: '#ffffff', text: 'black' },
     0:    { bg: '#f0f0f0', text: 'black' }
 };
+
 let ws = null;
-let accelChart, shindoChart;
+let xChart, yChart, zChart, shindoChart;
 const maxAccelPoints = 100;
 const maxShindoPoints = 100;
 
 // 年月日＋時刻表示
 function updateDateTime() {
     const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    document.getElementById('date-string').textContent = `${y}-${m}-${d} `;
-    document.getElementById('current-time').textContent =
-        now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3});
+    document.getElementById('date-string').textContent = now.toLocaleDateString('ja-JP');
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('ja-JP', { hour12: false });
 }
-setInterval(updateDateTime, 1);
+setInterval(updateDateTime, 1000);
 updateDateTime();
-connectWebSocket();
+
 // WebSocket接続
 function connectWebSocket() {
-    if (ws) ws.close();
-    ws = new WebSocket(document.getElementById('wsUrl').value);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('WebSocket already connected');
+        return;
+    }
+
+    const wsUrl = document.getElementById('wsUrl').value;
+    ws = new WebSocket(wsUrl);
+
     ws.onopen = () => {
         console.log('WebSocket connected');
-        document.getElementById('connectBtn').textContent = 'Disconnect';
-        document.getElementById('connectBtn').style.background = '#ff0000';
-        document.getElementById('connectBtn').onclick = () => { ws.close(); };
+        updateConnectButton(true);
     };
+
     ws.onclose = () => {
         console.log('WebSocket disconnected');
-        document.getElementById('connectBtn').textContent = 'Connect';
-        document.getElementById('connectBtn').style.background = '#23c32b';
-        document.getElementById('connectBtn').onclick = connectWebSocket;
+        updateConnectButton(false);
     };
+
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
-        document.getElementById('connectBtn').textContent = 'Connect';
-        document.getElementById('connectBtn').style.background = '#23c32b';
-        document.getElementById('connectBtn').onclick = connectWebSocket;
+        updateConnectButton(false);
     };
+
     ws.onmessage = handleMessage;
 }
 
-// データ受信処理
+// WebSocket接続ボタンの状態更新
+function updateConnectButton(isConnected) {
+    const btn = document.getElementById('connectBtn');
+    if (isConnected) {
+        btn.textContent = 'Disconnect';
+        btn.style.background = '#ff0000';
+        btn.onclick = () => ws.close();
+    } else {
+        btn.textContent = 'Connect';
+        btn.style.background = '#23c32b';
+        btn.onclick = connectWebSocket;
+    }
+}
+
+// メッセージ受信処理
 function handleMessage(event) {
     const line = event.data.split('*')[0];
     const parts = line.split(',');
+
     if (parts[0] === '$XSACC' && parts.length >= 4) {
-        const [x, y, z] = parts.slice(1,4).map(Number);
-        updateAccelChart(x, y, z);
-        document.getElementById('accel-values').textContent =
-            `X: ${x.toFixed(3)}　Y: ${y.toFixed(3)}　Z: ${z.toFixed(3)}`;
+        const [x, y, z] = parts.slice(1, 4).map(Number);
+        updateAccelCharts(x, y, z);
+        document.getElementById('accel-values').textContent = `X: ${x.toFixed(3)} Y: ${y.toFixed(3)} Z: ${z.toFixed(3)}`;
     }
+
     if (parts[0] === '$XSINT' && parts.length >= 3) {
         const shindo = parseFloat(parts[2]);
         updateCurrentShindoHeader(shindo);
@@ -177,143 +191,99 @@ function handleMessage(event) {
     }
 }
 
-// ヘッダーに大きく現在震度を表示（気象庁色分け）
+// 震度ヘッダー更新
 function updateCurrentShindoHeader(shindo) {
-    const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
+    const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
     const color = jmaColors[colorKey] || jmaColors[0];
     const el = document.getElementById('current-shindo');
-    el.textContent = `${shindo.toFixed(2)}`;
+    el.textContent = shindo.toFixed(2);
     el.style.backgroundColor = color.bg;
     el.style.color = color.text;
     el.style.borderColor = color.bg;
 }
 
-// 加速度グラフ
+// 加速度チャート作成
 function createAccelChart(ctx, label, color) {
     return new Chart(ctx, {
         type: 'line',
         data: {
             labels: [],
-            datasets: [
-                {
-                    label: label,
-                    borderColor: color,
-                    data: [],
-                    fill: false,
-                    tension: 0.2,
-                    pointRadius: 0
-                }
-            ]
+            datasets: [{
+                label: label,
+                borderColor: color,
+                data: [],
+                fill: false,
+                tension: 0.2,
+                pointRadius: 0
+            }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             animation: false,
             plugins: { legend: { display: true } },
-            scales: {
-                x: { display: false },
-                y: { title: { display: true, text: '加速度' } }
-            }
+            scales: { x: { display: false }, y: { title: { display: true, text: '加速度' } } }
         }
     });
 }
 
-let xChart, yChart, zChart;
-
+// 加速度チャート更新
 function updateAccelCharts(x, y, z) {
-    // X軸用チャート作成
-    if (!xChart) {
-        const xCtx = document.getElementById('xAccelChart').getContext('2d');
-        xChart = createAccelChart(xCtx, 'X軸', '#FF0000');
-    }
-    // Y軸用チャート作成
-    if (!yChart) {
-        const yCtx = document.getElementById('yAccelChart').getContext('2d');
-        yChart = createAccelChart(yCtx, 'Y軸', '#0000FF');
-    }
-    // Z軸用チャート作成
-    if (!zChart) {
-        const zCtx = document.getElementById('zAccelChart').getContext('2d');
-        zChart = createAccelChart(zCtx, 'Z軸', '#00FF00');
-    }
+    if (!xChart) xChart = createAccelChart(document.getElementById('xAccelChart').getContext('2d'), 'X軸', '#FF0000');
+    if (!yChart) yChart = createAccelChart(document.getElementById('yAccelChart').getContext('2d'), 'Y軸', '#0000FF');
+    if (!zChart) zChart = createAccelChart(document.getElementById('zAccelChart').getContext('2d'), 'Z軸', '#00FF00');
 
-    // データの追加
-    xChart.data.labels.push('');
-    yChart.data.labels.push('');
-    zChart.data.labels.push('');
+    [xChart, yChart, zChart].forEach((chart, i) => {
+        const value = [x, y, z][i];
+        chart.data.labels.push('');
+        chart.data.datasets[0].data.push(value);
 
-    xChart.data.datasets[0].data.push(x);
-    yChart.data.datasets[0].data.push(y);
-    zChart.data.datasets[0].data.push(z);
+        if (chart.data.labels.length > maxAccelPoints) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
 
-    // データ数が上限を超えた場合、古いデータを削除
-    if (xChart.data.labels.length > maxAccelPoints) {
-        xChart.data.labels.shift();
-        yChart.data.labels.shift();
-        zChart.data.labels.shift();
-
-        xChart.data.datasets[0].data.shift();
-        yChart.data.datasets[0].data.shift();
-        zChart.data.datasets[0].data.shift();
-    }
-
-    // チャート更新
-    xChart.update('none');
-    yChart.update('none');
-    zChart.update('none');
+        chart.update('none');
+    });
 }
-// 震度グラフ（リアルタイム、気象庁配色で線と点の色を変化）
+
+// 震度チャート作成・更新
 function updateShindoChart(shindo) {
     if (!shindoChart) {
-        const ctx = document.getElementById('shindoChart').getContext('2d');
-        shindoChart = new Chart(ctx, {
-            type: 'bar', // バーグラフに変更
+        shindoChart = new Chart(document.getElementById('shindoChart').getContext('2d'), {
+            type: 'bar',
             data: {
                 labels: [],
                 datasets: [{
                     label: '震度',
                     data: [],
-                    backgroundColor: [] // バーの色を指定
+                    backgroundColor: []
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
-                plugins: { 
-                    legend: { display: false } 
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: { 
-                        display: false, 
-                        title: { display: false, text: '時間' } 
-                    },
-                    y: { 
-                        min: 0, 
-                        max: 10, 
-                        title: { display: true, text: '震度' } 
-                    }
+                    x: { display: false },
+                    y: { min: 0, max: 7, title: { display: true, text: '震度' } }
                 }
             }
         });
     }
 
-    // データを更新
-    shindoChart.data.labels.push(''); // ラベルは空（時間などに変更可能）
-    shindoChart.data.datasets[0].data.push(shindo);
-
-    // 震度に応じた色を取得
     const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
+    shindoChart.data.labels.push('');
+    shindoChart.data.datasets[0].data.push(shindo);
     shindoChart.data.datasets[0].backgroundColor.push(jmaColors[colorKey]?.bg);
 
-    // 最大ポイント数を超えた場合、古いデータを削除
     if (shindoChart.data.labels.length > maxShindoPoints) {
         shindoChart.data.labels.shift();
         shindoChart.data.datasets[0].data.shift();
         shindoChart.data.datasets[0].backgroundColor.shift();
     }
 
-    // グラフを更新
     shindoChart.update('none');
 }
 </script>
