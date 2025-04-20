@@ -81,7 +81,7 @@
         <input id="wsUrl" type="text" value="wss://gal.halka.jp" placeholder="WebSocket URL">
         <button id="connectBtn" onclick="connectWebSocket()">Connect</button>
     </div>
-    <span id="current-shindo">震度 --</span>
+    <span id="current-shindo">--</span>
     <h2>加速度</h2>   
     <div id="accel-values"></div>
 
@@ -178,7 +178,7 @@ function updateCurrentShindoHeader(shindo) {
     const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
     const color = jmaColors[colorKey] || jmaColors[0];
     const el = document.getElementById('current-shindo');
-    el.textContent = `震度 ${shindo.toFixed(1)}`;
+    el.textContent = `${shindo.toFixed(3)}`;
     el.style.backgroundColor = color.bg;
     el.style.color = color.text;
     el.style.borderColor = color.bg;
