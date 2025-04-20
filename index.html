@@ -226,52 +226,53 @@ function updateShindoChart(shindo) {
     if (!shindoChart) {
         const ctx = document.getElementById('shindoChart').getContext('2d');
         shindoChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar', // バーグラフに変更
             data: {
                 labels: [],
                 datasets: [{
                     label: '震度',
                     data: [],
-                    borderColor: function(ctx) {
-                        const idx = ctx.p0DataIndex;
-                        const val = ctx.chart.data.datasets[0].data[idx];
-                        const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
-                        return jmaColors[colorKey]?.bg;
-                    },
-                    segment: {
-                        borderColor: ctx => {
-                            const idx = ctx.p0DataIndex;
-                            const val = ctx.chart.data.datasets[0].data[idx];
-                            const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => val >= k);
-                            return jmaColors[colorKey]?.bg;
-                        }
-                    },
-                    pointBackgroundColor: [],
-                    pointRadius: 5,
-                    fill: true
+                    backgroundColor: [] // バーの色を指定
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false } 
+                },
                 scales: {
-                    x: { display: false },
-                    y: { min: 0, max: 50, title: { display: true, text: '震度' } }
+                    x: { 
+                        display: true, 
+                        title: { display: true, text: '時間' } 
+                    },
+                    y: { 
+                        min: 0, 
+                        max: 50, 
+                        title: { display: true, text: '震度' } 
+                    }
                 }
             }
         });
     }
-    shindoChart.data.labels.push('');
+
+    // データを更新
+    shindoChart.data.labels.push(''); // ラベルは空（時間などに変更可能）
     shindoChart.data.datasets[0].data.push(shindo);
-    const colorKey = Object.keys(jmaColors).map(Number).sort((a,b)=>b-a).find(k => shindo >= k);
-    shindoChart.data.datasets[0].pointBackgroundColor.push(jmaColors[colorKey]?.bg);
+
+    // 震度に応じた色を取得
+    const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
+    shindoChart.data.datasets[0].backgroundColor.push(jmaColors[colorKey]?.bg);
+
+    // 最大ポイント数を超えた場合、古いデータを削除
     if (shindoChart.data.labels.length > maxShindoPoints) {
         shindoChart.data.labels.shift();
         shindoChart.data.datasets[0].data.shift();
-        shindoChart.data.datasets[0].pointBackgroundColor.shift();
+        shindoChart.data.datasets[0].backgroundColor.shift();
     }
+
+    // グラフを更新
     shindoChart.update('none');
 }
 </script>
