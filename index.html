@@ -189,9 +189,79 @@ function updateCurrentShindoHeader(shindo) {
 }
 
 // 加速度グラフ
+function createAccelChart(ctx, label, color) {
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: label,
+                    borderColor: color,
+                    data: [],
+                    fill: false,
+                    tension: 0.2,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: { legend: { display: true } },
+            scales: {
+                x: { display: false },
+                y: { title: { display: true, text: '加速度' } }
+            }
+        }
+    });
+}
 
-                
+let xChart, yChart, zChart;
 
+function updateAccelCharts(x, y, z) {
+    // X軸用チャート作成
+    if (!xChart) {
+        const xCtx = document.getElementById('xAccelChart').getContext('2d');
+        xChart = createAccelChart(xCtx, 'X軸', '#FF0000');
+    }
+    // Y軸用チャート作成
+    if (!yChart) {
+        const yCtx = document.getElementById('yAccelChart').getContext('2d');
+        yChart = createAccelChart(yCtx, 'Y軸', '#0000FF');
+    }
+    // Z軸用チャート作成
+    if (!zChart) {
+        const zCtx = document.getElementById('zAccelChart').getContext('2d');
+        zChart = createAccelChart(zCtx, 'Z軸', '#00FF00');
+    }
+
+    // データの追加
+    xChart.data.labels.push('');
+    yChart.data.labels.push('');
+    zChart.data.labels.push('');
+
+    xChart.data.datasets[0].data.push(x);
+    yChart.data.datasets[0].data.push(y);
+    zChart.data.datasets[0].data.push(z);
+
+    // データ数が上限を超えた場合、古いデータを削除
+    if (xChart.data.labels.length > maxAccelPoints) {
+        xChart.data.labels.shift();
+        yChart.data.labels.shift();
+        zChart.data.labels.shift();
+
+        xChart.data.datasets[0].data.shift();
+        yChart.data.datasets[0].data.shift();
+        zChart.data.datasets[0].data.shift();
+    }
+
+    // チャート更新
+    xChart.update('none');
+    yChart.update('none');
+    zChart.update('none');
+}
 // 震度グラフ（リアルタイム、気象庁配色で線と点の色を変化）
 function updateShindoChart(shindo) {
     if (!shindoChart) {
