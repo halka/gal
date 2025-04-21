@@ -11,8 +11,8 @@
 <body>
     <div id="header">
         <div>
-            <span style="font-size:4em;">ゆれるhalka</span>
-            <p style="font-size: 1.5em;">Goryokaku Park, Hakodate City, Hokkaido, JAPAN</p>
+            <h1>ゆれるhalka</h1>
+            <p>Goryokaku Park, Hakodate City, Hokkaido, JAPAN</p>
         </div>
         <div>
             <span id="date-string"></span>
@@ -22,56 +22,67 @@
             <p>加速度は100Hz, 震度は1Hzで出力。ハードウェアとネットワークの都合上、700msくらい遅れていると思われます。</p>
         </div>
     </div>
+
     <div id="controls">
-        <input id="wsUrl" type="text" value="wss://gal.halka.jp" placeholder="WebSocket URL">
+        <input id="wsUrl" type="text" value="wss://gal.halka.jp" placeholder="wss://example.com" />
         <button id="connectBtn" onclick="connectWebSocket()">Connect</button>
     </div>
-    <h2>震度</h2>
-    <h3>震度階級（気象庁）</h3>
-    <span id="current-shindo-jma">--</span>
-    <h3>震度（計算値）</h3>
-    <span id="current-shindo">--</span>
-    <h2>震度グラフ</h2>
-    <div id="shindoGraphs">
-        <div class="graph-container-shindo">
-            <canvas id="shindoChart"></canvas>
-        </div>
-    </div>
-    <h2>加速度</h2>
-    <h3>数値</h3>
-    <table id="accelTable">
-        <tr>
-            <th>日時</th>
-            <th>加速度X</th>
-            <th>加速度Y</th>
-            <th>加速度Z</th>
-            <th>加速度合成</th>
-            <th>加速度合成（計算値）</th>
-        </tr>
-        <tr>
-            <td id="accelDateTime">--</td>
-            <td id="accelX">--</td>
-            <td id="accelY">--</td>
-            <td id="accelZ">--</td>
-            <td id="accelComposite">--</td>
-            <td id="accelCompositeCalc">--</td>
-        </tr>
-    </table>
-    <div id="accelGraphs">
+
+    <section id="shindo-section">
+        <h2>震度</h2>
+        <h3>震度階級（気象庁スケール）</h3>
+        <span id="current-shindo-jma">--</span>
+        <h3>計算値</h3>
+        <span id="current-shindo">--</span>
         <h3>グラフ</h3>
-        <div class="graph-container-accel">
-            <canvas id="accelChartX"></canvas>
+        <div id="shindoGraphs">
+            <div class="graph-container-shindo">
+                <canvas id="shindoChart"></canvas>
+            </div>
         </div>
-        <div class="graph-container-accel">
-            <canvas id="accelChartY"></canvas>
+    </section>
+
+    <section id="accel-section">
+        <h2>加速度</h2>
+        <h3>数値</h3>
+        <table id="accelTable">
+            <thead>
+                <tr>
+                    <th>日時</th>
+                    <th>加速度X</th>
+                    <th>加速度Y</th>
+                    <th>加速度Z</th>
+                    <th>加速度合成</th>
+                    <th>加速度合成（計算値）</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="accelDateTime">--</td>
+                    <td id="accelX">--</td>
+                    <td id="accelY">--</td>
+                    <td id="accelZ">--</td>
+                    <td id="accelComposite">--</td>
+                    <td id="accelCompositeCalc">--</td>
+                </tr>
+            </tbody>
+        </table>
+        <h3>グラフ</h3>
+        <div id="accelGraphs">
+            <div class="graph-container-accel">
+                <canvas id="accelChartX"></canvas>
+            </div>
+            <div class="graph-container-accel">
+                <canvas id="accelChartY"></canvas>
+            </div>
+            <div class="graph-container-accel">
+                <canvas id="accelChartZ"></canvas>
+            </div>
         </div>
-        <div class="graph-container-accel">
-            <canvas id="accelChartZ"></canvas>
-        </div>
-    </div>
-    <footer
-        style="text-align: center; margin-top: 40px; padding: 20px; background: #f0f0f0; color: #333; font-size: 0.9em;">
-        <p>© 2025 halka </p>
+    </section>
+
+    <footer>
+        <p>© 2025 halka</p>
         <p><a href="https://github.com/halka/gal">Source Code on GitHub</a></p>
         <p>Powered by <a href="https://quake.one/sense/">QUAKE.ONE</a> Developed by Prioris.</p>
     </footer>

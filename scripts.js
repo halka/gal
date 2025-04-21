@@ -1,3 +1,4 @@
+// 気象庁震度階級の色設定
 const jmaColors = {
     7: { bg: '#7d007d', text: 'white' },
     6.5: { bg: '#d70035', text: 'white' },
@@ -12,7 +13,7 @@ const jmaColors = {
 };
 
 let ws = null;
-let shindoChart;
+let shindoChart, accelChartX, accelChartY, accelChartZ;
 const maxAccelPoints = 100;
 const maxShindoPoints = 10;
 
@@ -26,35 +27,41 @@ function updateDateTime() {
     document.getElementById('current-time').textContent =
         now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
 }
-setInterval(updateDateTime, 1);
+setInterval(updateDateTime, 1000);
 updateDateTime();
 
 // WebSocket接続
 function connectWebSocket() {
     if (ws) ws.close();
     ws = new WebSocket(document.getElementById('wsUrl').value);
+
     ws.onopen = () => {
         console.log('WebSocket connected');
-        document.getElementById('connectBtn').textContent = 'Disconnect';
-        document.getElementById('connectBtn').style.background = '#ff0000';
-        document.getElementById('connectBtn').onclick = () => { ws.close(); };
+        const connectBtn = document.getElementById('connectBtn');
+        connectBtn.textContent = 'Disconnect';
+        connectBtn.style.background = '#ff0000';
+        connectBtn.onclick = () => ws.close();
     };
+
     ws.onclose = () => {
         console.log('WebSocket disconnected');
-        document.getElementById('connectBtn').textContent = 'Connect';
-        document.getElementById('connectBtn').style.background = '#23c32b';
-        document.getElementById('connectBtn').onclick = connectWebSocket;
+        const connectBtn = document.getElementById('connectBtn');
+        connectBtn.textContent = 'Connect';
+        connectBtn.style.background = '#23c32b';
+        connectBtn.onclick = connectWebSocket;
     };
+
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
-        document.getElementById('connectBtn').textContent = 'Connect';
-        document.getElementById('connectBtn').style.background = '#23c32b';
-        document.getElementById('connectBtn').onclick = connectWebSocket;
+        alert('WebSocket接続に失敗しました。URLを確認してください。');
+        const connectBtn = document.getElementById('connectBtn');
+        connectBtn.textContent = 'Connect';
+        connectBtn.style.background = '#23c32b';
+        connectBtn.onclick = connectWebSocket;
     };
+
     ws.onmessage = handleMessage;
 }
-
-// その他の関数（updateAccelChart, updateShindoChart, etc.）はここに記述
 
 // データ受信処理
 function handleMessage(event) {
@@ -65,21 +72,18 @@ function handleMessage(event) {
         const [x, y, z] = parts.slice(1, 4).map(Number);
         updateAccelChart(x, y, z);
 
-        // 現在の日時を取得
         const now = new Date();
         const formattedDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ` +
                                   `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
 
-        // HTML要素に値を反映
         document.getElementById('accelDateTime').textContent = formattedDateTime;
         document.getElementById('accelX').textContent = x.toFixed(3);
         document.getElementById('accelY').textContent = y.toFixed(3);
         document.getElementById('accelZ').textContent = z.toFixed(3);
 
         const accelComposite = Math.sqrt(x ** 2 + y ** 2 + z ** 2);
-        const accelCompositeCalc = (accelComposite * 9.8).toFixed(3);
         document.getElementById('accelComposite').textContent = accelComposite.toFixed(3);
-        document.getElementById('accelCompositeCalc').textContent = accelCompositeCalc;
+        document.getElementById('accelCompositeCalc').textContent = accelComposite.toFixed(3);
     }
 
     if (parts[0] === '$XSINT' && parts.length >= 3) {
@@ -90,10 +94,15 @@ function handleMessage(event) {
     }
 }
 
-// ヘッダーに大きく現在震度を表示（気象庁色分け）
-function updateCurrentShindoHeader(shindo) {
+// 震度階級の色を取得
+function getJmaColor(shindo) {
     const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
-    const color = jmaColors[colorKey] || jmaColors[0];
+    return jmaColors[colorKey] || jmaColors[0];
+}
+
+// ヘッダーに震度を表示
+function updateCurrentShindoHeader(shindo) {
+    const color = getJmaColor(shindo);
     const el = document.getElementById('current-shindo');
     el.textContent = `${shindo.toFixed(2)}`;
     el.style.backgroundColor = color.bg;
@@ -101,36 +110,21 @@ function updateCurrentShindoHeader(shindo) {
     el.style.borderColor = color.bg;
 }
 
+// 震度階級を更新
 function updateCurrentShindoJMA(shindo) {
-    // 気象庁の震度階級に変換
     let jmaShindo;
-    if (shindo >= 7) {
-        jmaShindo = '7';
-    } else if (shindo >= 6.5) {
-        jmaShindo = '6強';
-    } else if (shindo >= 6) {
-        jmaShindo = '6弱';
-    } else if (shindo >= 5.5) {
-        jmaShindo = '5強';
-    } else if (shindo >= 5) {
-        jmaShindo = '5弱';
-    } else if (shindo >= 4) {
-        jmaShindo = '4';
-    } else if (shindo >= 3) {
-        jmaShindo = '3';
-    } else if (shindo >= 2) {
-        jmaShindo = '2';
-    } else if (shindo >= 1) {
-        jmaShindo = '1';
-    } else {
-        jmaShindo = '0';
-    }
+    if (shindo >= 6.5) jmaShindo = '7';
+    else if (shindo >= 6.0) jmaShindo = '6強';
+    else if (shindo >= 5.5) jmaShindo = '6弱';
+    else if (shindo >= 5.0) jmaShindo = '5強';
+    else if (shindo >= 4.5) jmaShindo = '5弱';
+    else if (shindo >= 3.5) jmaShindo = '4';
+    else if (shindo >= 2.5) jmaShindo = '3';
+    else if (shindo >= 1.5) jmaShindo = '2';
+    else if (shindo >= 0.5) jmaShindo = '1';
+    else jmaShindo = '0';
 
-    // 色を取得
-    const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
-    const color = jmaColors[colorKey] || jmaColors[0];
-
-    // 表示を更新
+    const color = getJmaColor(shindo);
     const el = document.getElementById('current-shindo-jma');
     el.textContent = jmaShindo;
     el.style.backgroundColor = color.bg;
@@ -138,35 +132,25 @@ function updateCurrentShindoJMA(shindo) {
     el.style.borderColor = color.bg;
 }
 
-let accelChartX, accelChartY, accelChartZ;
-
+// 加速度グラフを更新
 function updateAccelChart(x, y, z) {
-    if (!accelChartX) {
-        const ctxX = document.getElementById('accelChartX').getContext('2d');
-        accelChartX = createAccelChart(ctxX, 'X', '#FF0000');
-    }
-    if (!accelChartY) {
-        const ctxY = document.getElementById('accelChartY').getContext('2d');
-        accelChartY = createAccelChart(ctxY, 'Y', '#0000FF');
-    }
-    if (!accelChartZ) {
-        const ctxZ = document.getElementById('accelChartZ').getContext('2d');
-        accelChartZ = createAccelChart(ctxZ, 'Z', '#008044');
-    }
+    if (!accelChartX) accelChartX = createAccelChart('accelChartX', 'X', '#FF0000');
+    if (!accelChartY) accelChartY = createAccelChart('accelChartY', 'Y', '#0000FF');
+    if (!accelChartZ) accelChartZ = createAccelChart('accelChartZ', 'Z', '#008044');
 
     updateChartData(accelChartX, x);
     updateChartData(accelChartY, y);
     updateChartData(accelChartZ, z);
 }
 
-function createAccelChart(ctx, label, color) {
+// 加速度グラフを作成
+function createAccelChart(canvasId, label, color) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
     return new Chart(ctx, {
         type: 'line',
         data: {
             labels: [],
-            datasets: [
-                { label: label, borderColor: color, data: [], fill: false, tension: 0.2, pointRadius: 0 }
-            ]
+            datasets: [{ label, borderColor: color, data: [], fill: false, tension: 0.2, pointRadius: 0 }]
         },
         options: {
             responsive: true,
@@ -181,6 +165,7 @@ function createAccelChart(ctx, label, color) {
     });
 }
 
+// グラフデータを更新
 function updateChartData(chart, value) {
     chart.data.labels.push('');
     chart.data.datasets[0].data.push(value);
@@ -190,61 +175,48 @@ function updateChartData(chart, value) {
     }
     chart.update('none');
 }
-// 震度グラフ（リアルタイム、気象庁配色で線と点の色を変化）
+
+// 震度グラフを更新
 function updateShindoChart(shindo) {
-    // グラフが未初期化の場合、初期化
     if (!shindoChart) {
         const ctx = document.getElementById('shindoChart').getContext('2d');
         shindoChart = new Chart(ctx, {
-            type: 'bar', // バーグラフ
+            type: 'bar',
             data: {
-                labels: [], // 時間やインデックスをラベルとして使用
-                datasets: [{
-                    label: '震度',
-                    data: [],
-                    backgroundColor: [] // バーの色を指定
-                }]
+                labels: [],
+                datasets: [{ label: '震度', data: [], backgroundColor: [] }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false } // 凡例を非表示
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: {
-                        display: false, // X軸を非表示
-                        title: { display: false }
-                    },
-                    y: {
-                        // min: 0,
-                        // max: 10, // 震度の範囲を設定
-                        title: { display: true, text: '震度' }
-                    }
+                    x: { display: false },
+                    y: { min: 0, max: 7, title: { display: true, text: '震度' } }
                 }
             }
         });
     }
 
-    // データを更新
-    shindoChart.data.labels.push(''); // ラベルは空（必要に応じて時間などを追加）
+    shindoChart.data.labels.push('');
     shindoChart.data.datasets[0].data.push(shindo);
 
-    // 震度に応じた色を取得して設定
-    const colorKey = Object.keys(jmaColors).map(Number).sort((a, b) => b - a).find(k => shindo >= k);
-    shindoChart.data.datasets[0].backgroundColor.push(jmaColors[colorKey]?.bg);
+    const color = getJmaColor(shindo);
+    shindoChart.data.datasets[0].backgroundColor.push(color.bg);
 
-    // 最大ポイント数を超えた場合、古いデータを削除
     if (shindoChart.data.labels.length > maxShindoPoints) {
         shindoChart.data.labels.shift();
         shindoChart.data.datasets[0].data.shift();
         shindoChart.data.datasets[0].backgroundColor.shift();
     }
 
-    // グラフを更新
     shindoChart.update('none');
 }
 
+// ページ読み込み時にWebSocket接続を初期化
 document.addEventListener('DOMContentLoaded', () => {
-    connectWebSocket(); // ページ読み込み時にWebSocketに接続
+    document.getElementById('connectBtn').textContent = 'Connect';
+    document.getElementById('connectBtn').style.background = '#23c32b';
+    document.getElementById('connectBtn').onclick = connectWebSocket;
+    connectWebSocket();
 });

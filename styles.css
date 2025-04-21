@@ -1,3 +1,4 @@
+/* 全体のスタイル */
 body {
     margin: 0;
     padding: 0;
@@ -7,8 +8,14 @@ body {
 
 /* ヘッダーのスタイル */
 #header {
-    background-color: hsl(353, 85%, 49%); /* 背景色を赤に設定 */
-    color: white; /* 文字色を白に設定 */
+    background-color: hsl(353, 85%, 49%);
+    color: white;
+    padding: 14px 24px;
+    text-align: center;
+}
+#footer {
+    background-color: hsl(353, 85%, 49%);
+    color: white;
     padding: 14px 24px;
     text-align: center;
 }
@@ -21,17 +28,17 @@ body {
 #current-shindo-jma, #current-shindo {
     font-size: 10em;
     font-weight: bold;
-    padding: 10px 10px;
+    padding: 10px;
     border-radius: 16px;
     min-width: 220px;
     text-align: center;
-    margin-left: 24px;
-    margin-right: 24px;
+    margin: 0 24px;
     border: 3px solid #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     display: block;
 }
 
+/* コントロールエリアのスタイル */
 #controls {
     margin: 18px 24px;
     text-align: center;
@@ -57,84 +64,78 @@ body {
     margin-left: 8px;
 }
 
+/* グラフコンテナのスタイル */
 .graph-container {
     height: 40vh;
-    margin: 32px 24px 0 24px;
+    margin: 32px 24px 0;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(100, 116, 139, 0.07);
     position: relative;
-    padding: 1.5em 1em 1em 1em;
-
+    padding: 1.5em 1em;
 }
-.graph-container-shindo{
+
+.graph-container-shindo {
     height: 30vh;
-    margin: 32px 24px 0 24px;
+    margin: 32px 24px 0;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(100, 116, 139, 0.07);
     position: relative;
-    padding: 1.5em 1em 1em 1em;
+    padding: 1.5em 1em;
 }
 
-.graph-container-accel{
+.graph-container-accel {
     height: 20vh;
-    margin: 32px 24px 0 24px;
+    margin: 32px 24px 0;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(100, 116, 139, 0.07);
     position: relative;
-    padding: 1.5em 1em 1em 1em;
+    padding: 1.5em 1em;
 }
 
+/* 隠し要素 */
 .hidden {
     display: none;
 }
 
+/* 見出しのスタイル */
 h2 {
-    color: hsl(353, 85%, 49%); /* 赤色 */
-    text-decoration: none; /* デフォルトの下線を無効化 */
+    color: hsl(353, 85%, 49%);
     font-size: 1.8em;
-    margin-bottom: 10px;
-    margin-left: 24px;
-
-    cursor: pointer; /* クリック可能な見た目 */
-    position: relative; /* 下線用のスタイルを適用するために必要 */
+    margin: 10px 0 10px 24px;
+    position: relative;
 }
 
 h2::after {
-    content: ''; /* 疑似要素で下線を作成 */
+    content: '';
     display: block;
-    width: 100%; /* 画面幅の7割 */
-    height: 2px; /* 下線の太さ */
-    background-color: hsl(353, 85%, 49%); /* 下線の色 */
-    /* margin: 0 auto; 中央揃え */
-    margin-top: 5px; /* 下線と文字の間隔 */
+    width: 100%;
+    height: 2px;
+    background-color: hsl(353, 85%, 49%);
+    margin-top: 5px;
 }
 
 h3 {
-    color: hsl(353, 85%, 49%); /* 赤色 */
-    text-decoration: none; /* 下線を引かない */
+    color: hsl(353, 85%, 49%);
     font-size: 1.5em;
-    margin-bottom: 8px;
-    margin-left: 24px;
+    margin: 8px 0 8px 24px;
 }
 
 /* テーブルのスタイル */
 #accelTable {
-    /* width: 100%; テーブルの幅を全体に合わせる */
-    border-collapse: collapse; /* 枠線を統一 */
-    margin: 0 auto ; /* 上下に余白を追加 */
-    text-align: center; /* テキストを中央揃え */
+    border-collapse: collapse;
+    margin: 0 auto;
+    text-align: center;
 }
 
 #accelTable th, #accelTable td {
-    border: 1px solid #ddd; /* 枠線を追加 */
-    padding: 8px; /* セル内の余白 */
+    border: 1px solid #ddd;
+    padding: 8px;
 }
 
 #accelTable th {
-
-    background-color: hsl(353, 85%, 49%); /* ヘッダー行の背景色 */
-    color: #fff; /* ヘッダー行の文字色 */
+    background-color: hsl(353, 85%, 49%);
+    color: #fff;
 }
