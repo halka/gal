@@ -41,7 +41,7 @@ function updateDateTime(dateTimeElement = null) {
 }
 
 // ページ読み込み時に時刻を更新
-setInterval(() => updateDateTime('currentDateTime', null), 1000);
+setInterval(() => updateDateTime('currentDateTime'), 1000);
 
 // WebSocket接続
 function connectWebSocket() {
