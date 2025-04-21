@@ -9,30 +9,23 @@
 </head>
 
 <body>
-    <div id="header">
-        <div>
+    <header>
             <h1>ゆれるhalka</h1>
             <p>Goryokaku Park, Hakodate City, Hokkaido, JAPAN</p>
-        </div>
         <div>
             <span id="date-string"></span>
             <span id="current-time"></span>
         </div>
-        <div>
-            <p>加速度は100Hz, 震度は1Hzで出力。ハードウェアとネットワークの都合上、700msくらい遅れていると思われます。</p>
-        </div>
-    </div>
-
-    <div id="controls">
+    </header>
+    <section id="controls">
         <input id="wsUrl" type="text" value="wss://gal.halka.jp" placeholder="wss://example.com" />
         <button id="connectBtn" onclick="connectWebSocket()">Connect</button>
-    </div>
-
+    </section>
     <section id="shindo-section">
         <h2>震度</h2>
-        <h3>震度階級（気象庁スケール）</h3>
+        <h3>震度階級</h3>
         <span id="current-shindo-jma">--</span>
-        <h3>計算値</h3>
+        <h3>計測震度</h3>
         <span id="current-shindo">--</span>
         <h3>グラフ</h3>
         <div id="shindoGraphs">
@@ -85,6 +78,7 @@
         <p>© 2025 halka</p>
         <p><a href="https://github.com/halka/gal">Source Code on GitHub</a></p>
         <p>Powered by <a href="https://quake.one/sense/">QUAKE.ONE</a> Developed by Prioris.</p>
+        <p>加速度は100Hz, 震度は1Hzで出力。ハードウェアとネットワークの都合上、700msくらい遅れていると思われます。</p>
     </footer>
 
     <script src="scripts.js"></script>

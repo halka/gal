@@ -15,7 +15,7 @@ const jmaColors = {
 let ws = null;
 let shindoChart, accelChartX, accelChartY, accelChartZ;
 const maxAccelPoints = 100;
-const maxShindoPoints = 10;
+const maxShindoPoints = 30;
 
 // 年月日＋時刻表示
 function updateDateTime() {
@@ -27,7 +27,7 @@ function updateDateTime() {
     document.getElementById('current-time').textContent =
         now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
 }
-setInterval(updateDateTime, 1000);
+setInterval(updateDateTime, 1);
 updateDateTime();
 
 // WebSocket接続
@@ -184,7 +184,7 @@ function updateShindoChart(shindo) {
             type: 'bar',
             data: {
                 labels: [],
-                datasets: [{ label: '震度', data: [], backgroundColor: [] }]
+                datasets: [{ label: '計測震度', data: [], backgroundColor: [] }]
             },
             options: {
                 responsive: true,
@@ -192,7 +192,7 @@ function updateShindoChart(shindo) {
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { display: false },
-                    y: { min: 0, max: 7, title: { display: true, text: '震度' } }
+                    y: { title: { display: true, text: '計測震度' } }
                 }
             }
         });
