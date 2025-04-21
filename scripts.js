@@ -15,10 +15,10 @@ const jmaColors = {
 let ws = null;
 let shindoChart, accelChartX, accelChartY, accelChartZ;
 const maxAccelPoints = 100;
-const maxShindoPoints = 100;
+const maxShindoPoints = 30;
 
 // 年月日＋時刻表示を汎用化
-function updateDateTime(dateElementId, timeElementId) {
+function updateDateTime(dateTimeElement = null) {
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -31,21 +31,17 @@ function updateDateTime(dateElementId, timeElementId) {
         hour12: false
     });
 
-    if (dateElementId) {
-        const dateElement = document.getElementById(dateElementId);
-        if (dateElement) dateElement.textContent = dateString;
+    if (dateTimeElement) {
+        const dateElement = document.getElementById(dateTimeElement);
+        if (dateElement) dateElement.textContent = `${dateString} ${timeString}`;
     }
 
-    if (timeElementId) {
-        const timeElement = document.getElementById(timeElementId);
-        if (timeElement) timeElement.textContent = timeString;
-    }
+    // 現在時刻を返す（震度グラフ用）
     return `${dateString} ${timeString}`;
 }
 
 // ページ読み込み時に時刻を更新
-setInterval(() => updateDateTime('date-string', 'current-time'), 1000);
-updateDateTime('date-string', 'current-time');
+setInterval(() => updateDateTime('currentDateTime', null), 1000);
 
 // WebSocket接続
 function connectWebSocket() {

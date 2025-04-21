@@ -29,8 +29,7 @@ footer a:hover {
     text-decoration: underline; /* ホバー時に下線を表示（任意） */
 }
 
-#date-string,
-#current-time {
+#currentDateTime {
     font-size: 2em;
 }
 
