@@ -84,7 +84,7 @@ footer a:hover {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(100, 116, 139, 0.07);
     position: relative;
-    padding: 1.5em 1em;
+    padding: 10px;
 }
 
 .graph-container-shindo {
@@ -94,6 +94,8 @@ footer a:hover {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(100, 116, 139, 0.07);
     position: relative;
+    padding: 10px;
+
 }
 
 .graph-container-accel {
@@ -103,7 +105,7 @@ footer a:hover {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(100, 116, 139, 0.07);
     position: relative;
-    /* padding: 1.5em 1em; */
+    padding: 10px;
 }
 
 /* 見出しのスタイル */
