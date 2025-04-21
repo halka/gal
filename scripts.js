@@ -17,18 +17,35 @@ let shindoChart, accelChartX, accelChartY, accelChartZ;
 const maxAccelPoints = 100;
 const maxShindoPoints = 100;
 
-// 年月日＋時刻表示
-function updateDateTime() {
+// 年月日＋時刻表示を汎用化
+function updateDateTime(dateElementId, timeElementId) {
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
-    document.getElementById('date-string').textContent = `${y}-${m}-${d} `;
-    document.getElementById('current-time').textContent =
-        now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const dateString = `${y}-${m}-${d}`;
+    const timeString = now.toLocaleTimeString('ja-JP', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+
+    if (dateElementId) {
+        const dateElement = document.getElementById(dateElementId);
+        if (dateElement) dateElement.textContent = dateString;
+    }
+
+    if (timeElementId) {
+        const timeElement = document.getElementById(timeElementId);
+        if (timeElement) timeElement.textContent = timeString;
+    }
+    return `${dateString} ${timeString}`;
 }
-setInterval(updateDateTime, 1000);
-updateDateTime();
+
+// ページ読み込み時に時刻を更新
+setInterval(() => updateDateTime('date-string', 'current-time'), 1000);
+updateDateTime('date-string', 'current-time');
 
 // WebSocket接続
 function connectWebSocket() {
@@ -191,14 +208,14 @@ function updateShindoChart(shindo) {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { display: false },
-                    y: { title: { display: true, text: '計測震度' } }
+                    x: { title: {display: false }},
+                    y: { title: { display: true, text: '計測震度'} }
                 }
             }
         });
     }
 
-    shindoChart.data.labels.push('');
+    shindoChart.data.labels.push(updateDateTime(null, null));
     shindoChart.data.datasets[0].data.push(shindo);
 
     const color = getJmaColor(shindo);
