@@ -15,7 +15,7 @@ const jmaColors = {
 let ws = null;
 let shindoChart, accelChartX, accelChartY, accelChartZ;
 const maxAccelPoints = 100;
-const maxShindoPoints = 30;
+const maxShindoPoints = 100;
 
 // 年月日＋時刻表示
 function updateDateTime() {
@@ -25,9 +25,9 @@ function updateDateTime() {
     const d = String(now.getDate()).padStart(2, '0');
     document.getElementById('date-string').textContent = `${y}-${m}-${d} `;
     document.getElementById('current-time').textContent =
-        now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+        now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 }
-setInterval(updateDateTime, 1);
+setInterval(updateDateTime, 1000);
 updateDateTime();
 
 // WebSocket接続
