@@ -46,8 +46,7 @@ setInterval(() => updateDateTime('currentDateTime', null), 1000);
 // WebSocket接続
 function connectWebSocket() {
     if (ws) ws.close();
-    ws = new WebSocket(document.getElementById('wsUrl').value);
-
+    ws = new WebSocket('wss://gal.halka.jp');
     ws.onopen = () => {
         console.log('WebSocket connected');
         const connectBtn = document.getElementById('connectBtn');
